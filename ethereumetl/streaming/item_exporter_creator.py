@@ -94,6 +94,17 @@ def create_item_exporter(output):
             'token': 'tokens',
         })
 
+    elif item_exporter_type == ItemExporterType.REDIS:
+        from blockchainetl.jobs.exporters.redis_item_exporter import RedisItemExporter
+        item_exporter = RedisItemExporter(output, item_type_to_queue_mapping={
+            'block': 'blocks',
+            'transaction': 'transactions',
+            'log': 'logs',
+            'token_transfer': 'token_transfers',
+            'trace': 'traces',
+            'contract': 'contracts',
+            'token': 'tokens',
+        })
     else:
         raise ValueError('Unable to determine item exporter type for output ' + output)
 
@@ -118,11 +129,13 @@ def determine_item_exporter_type(output):
         return ItemExporterType.KINESIS
     if output is not None and output.startswith('kafka'):
         return ItemExporterType.KAFKA
-    elif output is not None and output.startswith('postgresql'):
+    if output is not None and output.startswith('redis'):
+        return ItemExporterType.REDIS
+    if output is not None and output.startswith('postgresql'):
         return ItemExporterType.POSTGRES
-    elif output is not None and output.startswith('gs://'):
+    if output is not None and output.startswith('gs://'):
         return ItemExporterType.GCS
-    elif output is None or output == 'console':
+    if output is None or output == 'console':
         return ItemExporterType.CONSOLE
     else:
         return ItemExporterType.UNKNOWN
@@ -135,4 +148,5 @@ class ItemExporterType:
     GCS = 'gcs'
     CONSOLE = 'console'
     KAFKA = 'kafka'
+    REDIS = 'redis'
     UNKNOWN = 'unknown'
